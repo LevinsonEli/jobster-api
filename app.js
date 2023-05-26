@@ -35,7 +35,7 @@ app.use(helmet());
 // app.use(cors());
 app.use(xss());
 
-app.use(express.static(path.resolve(__dirname, './client/build')));
+// app.use(express.static(path.resolve(__dirname, './client/build')));
 app.use(appLimiter);
 
 // routes
