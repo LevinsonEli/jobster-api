@@ -1,4 +1,4 @@
-# jobster-api
+# Job Tracking App
 
 Deployed on https://jobster-api-cr9p.onrender.com <br />
 Use email: demo@demo.com <br />
