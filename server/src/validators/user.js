@@ -1,31 +1,37 @@
-
+const { BadRequestError } = require('../errors');
 
 const validateName = ( name ) => {
     if ( name.length < 3 )
-        throw new Error(`Name length should be at least ${3}`);
+        throw new BadRequestError(`Name length should be at least ${3}`);
     if ( name.length > 30)
-        throw new Error(`Name length should be the most ${30}`);
+        throw new BadRequestError(`Name length should be the most ${30}`);
     return name;
 }
 
 const validateLastName = ( lastName ) => {
     if (lastName.length > 30)
-      throw new Error(`Last Name length should be the most ${30}`);
+      throw new BadRequestError(`Last Name length should be the most ${30}`);
     return lastName;
 }
 
 const validateEmail = ( email ) => {
-    //validate
+    const emailCheckRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    if ( !email )
+        throw new BadRequestError('Email can not be empty');
+    if ( !emailCheckRegex.test(email) )
+        throw new BadRequestError('Email should be valid');
     return email;
 }
 
 const validatePassword = ( passsword ) => {
     if (passsword.length < 6)
-      throw new Error(`Password length should be at least ${6}`);
+      throw new BadRequestError(`Password length should be at least ${6}`);
     return passsword;
 }
 
 const validateLocation = ( location ) => {
+    if ( location && location.length > 30)
+        throw new BadRequestError(`Location length should be the most ${30}`);
     return location;
 }
 
@@ -46,7 +52,6 @@ const validateUserForUpdate = ( user ) => {
 
     return { name, lastName, email, location };
 }
-
 
 module.exports = {
   validateEmail,

@@ -1,39 +1,39 @@
 const { validateId } = require(".");
-const { UnauthenticatedError, NotFoundError } = require("../errors");
+const { UnauthenticatedError, NotFoundError, BadRequestError } = require("../errors");
 
 const validateCompany = ( company ) => {
     if ( !company )
-        throw new Error('Company name is required for Job');
+        throw new BadRequestError('Company name is required for Job');
     if ( company.length > 50 )
-        throw new Error(`Company name can me the most ${50} characters`);
+        throw new BadRequestError(`Company name can me the most ${50} characters`);
     return company;
 }
 
 const validatePosition = ( position ) => {
     if ( !position )
-        throw new Error('Position name is required for Job');
+        throw new BadRequestError('Position is required for Job');
     if ( position.length > 100 )
-        throw new Error(`Position name can me the most ${100} characters`);
+        throw new BadRequestError(`Position can me the most ${100} characters`);
     return position;
 }
 
 const validateStatus = ( status ) => {
     const statusesList = ['interview', 'declined', 'pending'];
     if ( statusesList.indexOf(status) === -1 )
-        throw new Error(`Status can be one of [${statusesList.toString()}]`);
+        throw new BadRequestError(`Status can be one of [${statusesList.toString()}]`);
     return status;
 }
 
 const validateLocation = ( location ) => {
     if ( location.length > 20 )
-        throw new Error(`Location can be the most ${20} characters long`);
+        throw new BadRequestError(`Location can be the most ${20} characters long`);
     return location;
 }
 
 const validateType = ( type ) => {
     const typesList = ['full-time', 'part-time', 'remote', 'internship'];
     if ( typesList.indexOf(type) === -1 )
-        throw new Error(`Job Type can be one of [${typesList.toString()}]`);
+        throw new BadRequestError(`Job Type can be one of [${typesList.toString()}]`);
     return type;
 }
 
@@ -44,7 +44,7 @@ const validateSort = ( sort ) => {
     if ( !sort )
         return defaultSortValue;
     if (sortsList.indexOf(sort) === -1)
-      throw new Error(`Sort value can be one of [${sortsList.toString()}]`);
+      throw new BadRequestError(`Sort value can be one of [${sortsList.toString()}]`);
 
     return sort;
 }

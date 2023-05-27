@@ -10,6 +10,9 @@ const { createJWT } = require('../utils/jwt');
 
 const register = async (req, res) => {
   const validatedUser = validateUserForRegister(req.body);
+  const isEmailExist = await User.findOne({ email: validatedUser.email });
+  if ( isEmailExist)
+    throw new BadRequestError('Such a user already exist');
   const user = await User.create({ ...validatedUser });
   const jwtPayload = user.createPayloadForJWT();
   const token = createJWT(jwtPayload);
@@ -58,9 +61,10 @@ const updateUser = async (req, res) => {
 
   const user = await User.findOne({ _id: req.user.id });
   
-  user.email = validatedUser.email;
+  // user.email = validatedUser.email;
   user.name = validatedUser.name;
   user.lastName = validatedUser.lastName;
+  user.location = validatedUser.location;
 
   await user.save();
   const jwtPayload = user.createPayloadForJWT();

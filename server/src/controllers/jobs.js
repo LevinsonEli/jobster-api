@@ -96,11 +96,6 @@ const deleteJob = async (req, res) => {
     params: { id: jobId },
   } = req;
 
-  if (!validateId(userId))
-    throw new UnauthenticatedError('Must login first');
-  if (!validateId(jobId))
-    throw new NotFoundError('Job not found');
-
   const job = await Job.findByIdAndRemove({
     _id: jobId,
     createdBy: userId,
