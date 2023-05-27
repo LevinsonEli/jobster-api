@@ -35,10 +35,10 @@ app.use(helmet());
 // app.use(cors());
 app.use(xss());
 
-if (process.env.NODE_ENV === 'DEV')  
+if (process.env.NODE_ENV === 'DEV')
   app.use(express.static(path.resolve(__dirname, '../../client')));
 else
-  app.use(express.static(path.resolve(__dirname, '../../client/dist')));
+  app.use(express.static(path.resolve(__dirname, '../client/dist')));
 // app.use(appLimiter);
 
 // routes
