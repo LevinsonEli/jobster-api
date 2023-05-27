@@ -25,8 +25,8 @@ const validateStatus = ( status ) => {
 }
 
 const validateLocation = ( location ) => {
-    if ( location.length > 20 )
-        throw new BadRequestError(`Location can be the most ${20} characters long`);
+    if ( location.length > 30 )
+        throw new BadRequestError(`Location can be the most ${30} characters long`);
     return location;
 }
 

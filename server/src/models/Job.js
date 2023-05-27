@@ -26,7 +26,7 @@ const JobSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please provide job location'],
       default: 'My City',
-      maxLength: 20,
+      maxLength: 30,
       trim: true,
     },
     type: {
