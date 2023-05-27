@@ -39,7 +39,7 @@ if (process.env.NODE_ENV === 'DEV')
   app.use(express.static(path.resolve(__dirname, '../../client')));
 else
   app.use(express.static(path.resolve(__dirname, '../client/dist')));
-// app.use(appLimiter);
+app.use(appLimiter);
 
 // routes
 app.use('/api/v1/auth', authRouter);

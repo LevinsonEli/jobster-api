@@ -12,7 +12,11 @@ const UserSchema = new mongoose.Schema({
     type: String,
     trim: true,
     maxLength: 30,
-    default: 'Last Name'
+    default: 'Last Name',
+  },
+  location: {
+    type: String,
+    maxLength: 30,
   },
   email: {
     type: String,
@@ -28,7 +32,7 @@ const UserSchema = new mongoose.Schema({
     required: [true, 'Please provide password'],
     minlength: 6,
   },
-})
+});
 
 UserSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
