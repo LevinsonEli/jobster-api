@@ -53,7 +53,8 @@ const Profile = () => {
             type='email'
             name='email'
             value={userData.email}
-            handleChange={handleChange}
+            // handleChange={handleChange}
+            readOnly={true}
           />
           <FormRow
             type='text'
