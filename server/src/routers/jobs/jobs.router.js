@@ -1,6 +1,6 @@
-const express = require('express')
+const express = require('express');
 
-const router = express.Router()
+const router = express.Router();
 const {
   createJob,
   deleteJob,
@@ -8,8 +8,8 @@ const {
   updateJob,
   getJob,
   showStats,
-} = require('../controllers/jobs');
-const testUser = require('../middleware/testUser');
+} = require('./jobs.controller');
+const testUser = require('../../middleware/testUser');
 
 router.route('/').post(testUser, createJob).get(getAllJobs);
 
@@ -21,5 +21,4 @@ router
   .delete(testUser, deleteJob)
   .patch(testUser, updateJob);
 
-
-module.exports = router
+module.exports = router;

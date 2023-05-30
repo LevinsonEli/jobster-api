@@ -23,8 +23,8 @@ const app = express();
 const connectDB = require('./db/connect');
 const authenticateUser = require('./middleware/authentication');
 // routers
-const authRouter = require('./routers/auth');
-const jobsRouter = require('./routers/jobs');
+const authRouter = require('./routers/auth/auth.router');
+const jobsRouter = require('./routers/jobs/jobs.router');
 // error handler
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
