@@ -67,7 +67,7 @@ const deleteJob = async (req, res) => {
 };
 
 const showStats = async (req, res) => {
-  const { defaultStats, monthlyApplications } = getStats(req.user.id);
+  const { defaultStats, monthlyApplications } = await getStats(req.user.id);
   res.status(StatusCodes.OK).json({ defaultStats, monthlyApplications });
 };
 

@@ -93,7 +93,7 @@ const deleteOne = async (jobId, userId) => {
   }
 };
 
-const getStats = async userId => {
+const getStats = async (userId) => {
   try {
     let stats = await Job.aggregate([
       { $match: { createdBy: mongoose.Types.ObjectId(userId) } },
@@ -127,7 +127,7 @@ const getStats = async userId => {
       { $limit: 6 },
     ]);
 
-    monthlyApplications = monthlyApplications.map(item => {
+    monthlyApplications = monthlyApplications.map((item) => {
       const {
         _id: { year, month },
         count,

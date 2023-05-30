@@ -1,14 +1,12 @@
 const User = require('../../models/User');
-const { BadRequestError } = require('../../errors');
+const { BadRequestError, UnauthenticatedError } = require('../../errors');
 
 const create = async (data) => {
   try {
     const user = await User.create({ ...data });
     return user; // TODO: more control
   } catch (error) {
-    throw new BadRequestError(
-      'Error occured while creating new user.'
-    );
+    throw new BadRequestError('Error occured while creating new user.');
   }
 };
 
@@ -33,9 +31,7 @@ const updateOne = async (id, data) => {
     const updatedUser = await user.save();
     return updatedUser; // TODO: more control
   } catch (error) {
-    throw new BadRequestError(
-      'Error occured while updating user.'
-    );
+    throw new BadRequestError('Error occured while updating user.');
   }
 };
 

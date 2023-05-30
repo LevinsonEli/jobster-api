@@ -4,6 +4,7 @@ import { clearStore } from '../features/user/userSlice';
 
 const customFetch = axios.create({
   baseURL: '/api/v1',
+  // baseURL: 'http://localhost:5000/api/v1',
 });
 
 customFetch.interceptors.request.use(
