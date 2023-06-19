@@ -1,0 +1,33 @@
+api folder:
+
+Express route controllers for all the endpoints of the app.
+
+Implemented in REST-kind architecture.
+
+Every name of each folder is the plural of the endpoints set. For example for set of endpoints: GET "/product" GET "/product/:id" POST "/product" the structure should be:
+
+| api
+|___products
+|_____products.controller.js
+|_____products.router.js
+
+The router.js file uses the controller.js file like this:
+
+const router = require("express").Router();
+const ProductsController = require("./products.controller");
+
+router.get("/", ProductsController.getAll);
+router.get("/:id", ProductsController.getOne);
+router.post("/", ProductsController.createOne);
+
+module.exports = router;
+
+And the controller.js file uses services and looks like this:
+
+export default ProductsController = {
+    ProductsController: () => {
+        // input
+        // services calls
+        // return res.json()
+    }
+}
