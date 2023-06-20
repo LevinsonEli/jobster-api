@@ -1,9 +1,13 @@
 import Job from '../models/Job';
 const moment = require('moment');
 const mongoose = require('mongoose');
+import { UpdateQuery } from 'mongoose';
 import CreateJobValidatedInput from '../types/jobs/CreateJobValidatedInput';
 import GetAllJobsValidatedInput from '../types/jobs/GetAllJobsValidatedInput';
 import UpdateJobValidatedInput from '../types/jobs/UpdateJobValidatedInput';
+import IUser from '../interfaces/IUser';
+import IJob from '../interfaces/IJob';
+import { Model } from 'mongoose';
 
 interface IQueryObject {
   createdBy: string,
@@ -18,15 +22,17 @@ interface IStats {
   declined: number;
 }
 
-export default class JobsService {
-  private static instance: JobsService;
-  private constructor() {}
+import { Service, Inject } from 'typedi';
 
-  public static getInstance(): JobsService {
-    if (!JobsService.instance) {
-      JobsService.instance = new JobsService();
-    }
-    return JobsService.instance;
+@Service()
+export default class JobsService {
+  @Inject('userModel') userModel: Model<IUser & Document>;
+  @Inject('jobModel') jobModel: Model<IJob & Document>;
+
+  constructor(@Inject('userModel') userModel: Model<IUser & Document>,
+  @Inject('jobModel') jobModel: Model<IJob & Document>) {
+    this.userModel = userModel;
+    this.jobModel = jobModel;
   }
 
   public getMany = async (userId: string, input: GetAllJobsValidatedInput) => {
@@ -40,7 +46,7 @@ export default class JobsService {
     if (status && status !== 'all') queryObject.status = status;
     if (type && type !== 'all') queryObject.type = type;
 
-    let result = Job.find(queryObject);
+    let result = this.jobModel.find(queryObject);
 
     switch (sort) {
       case 'latest':
@@ -61,14 +67,14 @@ export default class JobsService {
 
     const jobs = await result;
 
-    const totalJobs = await Job.countDocuments(queryObject);
+    const totalJobs = await this.jobModel.countDocuments(queryObject);
     const numOfPages = Math.ceil(totalJobs / limit);
     return { jobs, totalJobs, numOfPages };
   };
 
   public getOne = async (jobId: string, userId: string) => {
     try {
-      const job = await Job.findOne({
+      const job = await this.jobModel.findOne({
         _id: jobId,
         createdBy: userId,
       });
@@ -80,7 +86,7 @@ export default class JobsService {
 
   public create = async (data: CreateJobValidatedInput) => {
     try {
-      const job = await Job.create(data);
+      const job = await this.jobModel.create(data);
       return job;
     } catch (error) {
       throw new Error('Error occured while creating new job.');
@@ -95,9 +101,11 @@ export default class JobsService {
     try {
       const { company, position, status, location, type } = data;
 
-      const job = await Job.findOneAndUpdate(
+      const job = await this.jobModel.findOneAndUpdate(
         { _id: jobId, createdBy: userId },
-        { company, position, status, location, type },
+        { company, position, status, location, type } as UpdateQuery<
+          IJob & Document
+        >,
         { new: true, runValidators: true }
       );
       return job;
@@ -109,7 +117,7 @@ export default class JobsService {
 
   public deleteOne = async (jobId: string, userId: string) => {
     try {
-      const job = await Job.findByIdAndRemove({
+      const job = await this.jobModel.findByIdAndRemove({
         _id: jobId,
         createdBy: userId,
       });
@@ -121,7 +129,7 @@ export default class JobsService {
 
   public getStats = async (userId: string) => {
     try {
-      let statsTemp = await Job.aggregate([
+      let statsTemp = await this.jobModel.aggregate([
         { $match: { createdBy: mongoose.Types.ObjectId(userId) } },
         { $group: { _id: '$status', count: { $sum: 1 } } },
       ]);
@@ -138,7 +146,7 @@ export default class JobsService {
         declined: stats.declined || 0,
       };
 
-      let monthlyApplications = await Job.aggregate([
+      let monthlyApplications = await this.jobModel.aggregate([
         { $match: { createdBy: mongoose.Types.ObjectId(userId) } },
         {
           $group: {

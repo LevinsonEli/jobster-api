@@ -1,14 +1,19 @@
 
 require('express-async-errors');
 
+import { Container } from 'typedi';
+// TODO: move to separate file: 'dependency-injectors'
+Container.set('userModel', require('../models/User').default);
+Container.set('jobModel', require('../models/Job').default);
+
 import express from 'express';
 const app = express();
 
-const path = require('path');
-// const express = require('express');
+import path from 'path';
 
 // extra security packages
-const helmet = require('helmet');
+import helmet from 'helmet';
+
 // const cors = require('cors');
 const xss = require('xss-clean');
 const rateLimiter = require('express-rate-limit');
@@ -20,14 +25,15 @@ const appLimiter = rateLimiter({
   }
 });
 
-import authenticateUser from '../api/middlewares/authentication';
 // routers
-import authRouter from '../api/routes/auth/auth.router';
-import jobsRouter from '../api/routes/jobs/jobs.router';
+import JobsRouter from '../api/routes/jobs/jobs.router';
+const jobsRouterInstance = Container.get(JobsRouter);
+import AuthRouter from '../api/routes/auth/auth.router';
+const authRouterInstance = Container.get(AuthRouter);
+
 // error handler
 const notFoundMiddleware = require('../api/middlewares/not-found');
 const errorHandlerMiddleware = require('../api/middlewares/error-handler');
-
 
 app.set('trust proxy', 1); // for deploy
 app.use(express.json());
@@ -39,8 +45,8 @@ app.use(express.static(path.resolve(__dirname, '../../client/dist')));
 app.use(appLimiter);
 
 // routes
-app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/jobs', authenticateUser, jobsRouter);
+authRouterInstance.addAuthRoutes(app);
+jobsRouterInstance.addJobsRoutes(app);
 
 app.get('*', (req, res) => {
   res.sendFile(path.resolve(__dirname, '../../client/dist', 'index.html'));

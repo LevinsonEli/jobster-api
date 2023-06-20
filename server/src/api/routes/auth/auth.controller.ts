@@ -1,4 +1,3 @@
-const User = require('../../../models/User');
 const { StatusCodes } = require('http-status-codes');
 const { BadRequestError, UnauthenticatedError } = require('../../errors');
 const { createJWT } = require('../../../services/jwt');
@@ -8,26 +7,26 @@ import { IUserForRegisterDTO, IUserForUpdateDTO } from '../../../interfaces/user
 import { Request, Response } from 'express';
 import IAuthRequest from '../../../interfaces/IAuthRequest';
 import UsersService from '../../../services/user';
+import { Service, Inject } from 'typedi';
 
+@Service()
 export default class AuthController {
-  private static instance: AuthController;
-  private constructor() {}
+  @Inject() userService: UsersService;
 
-  public static getInstance(): AuthController {
-    if (!AuthController.instance) {
-      AuthController.instance = new AuthController();
-    }
-    return AuthController.instance;
+  constructor(@Inject() userService: UsersService) {
+    this.userService = userService;
   }
 
-  public async register (req: Request, res: Response) {
+  register = async (req: Request, res: Response) => {
     const validatedUser = UserValidator.getInstance().validateUserForRegister(
       req.body as IUserForRegisterDTO
     );
-    const isEmailExist = await UsersService.getInstance().getOneByEmail(validatedUser.email);
+    const isEmailExist = await this.userService.getOneByEmail(
+      validatedUser.email
+    );
     if (isEmailExist) throw new BadRequestError('Such a user already exist');
-    const user = await UsersService.getInstance().create({ ...validatedUser });
-    const jwtPayload = UsersService.getInstance().createPayloadForJWT(user);
+    const user = await this.userService.create({ ...validatedUser });
+    const jwtPayload = this.userService.createPayloadForJWT(user);
     const token = createJWT(jwtPayload);
     res.status(StatusCodes.CREATED).json({
       user: {
@@ -40,11 +39,14 @@ export default class AuthController {
     });
   };
 
-  public async login (req: Request, res: Response) {
+  login = async (req: Request, res: Response) => {
     const email = UserValidator.getInstance().validateEmail(req.body.email);
-    const user = await UsersService.getInstance().validateCredentials(email, req.body.password);
+    const user = await this.userService.validateCredentials(
+      email,
+      req.body.password
+    );
 
-    const jwtPayload = UsersService.getInstance().createPayloadForJWT(user);
+    const jwtPayload = this.userService.createPayloadForJWT(user);
     const token = createJWT(jwtPayload);
     res.status(StatusCodes.OK).json({
       user: {
@@ -57,14 +59,14 @@ export default class AuthController {
     });
   };
 
-  public async updateUser (req: IAuthRequest, res: Response) {
+  updateUser = async (req: IAuthRequest, res: Response) => {
     const userId = req.user ? req.user.id : '';
     const validatedUser = UserValidator.getInstance().validateUserForUpdate(
       req.body as IUserForUpdateDTO
     );
-    const user = await UsersService.getInstance().updateOne(userId, validatedUser);
+    const user = await this.userService.updateOne(userId, validatedUser);
 
-    const jwtPayload = UsersService.getInstance().createPayloadForJWT(user);
+    const jwtPayload = this.userService.createPayloadForJWT(user);
     const token = createJWT(jwtPayload);
     res.status(StatusCodes.OK).json({
       user: {

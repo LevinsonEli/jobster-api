@@ -3,20 +3,19 @@ import UpdateUserValidatedInput from '../types/users/UpdateUserValidatedInput';
 
 import User from '../models/User';
 import IJWTPayload from '../interfaces/IJWTPayload';
+import { Model } from 'mongoose';
+import IUser from '../interfaces/IUser';
+import { Service, Inject } from 'typedi';
 
+@Service()
 export default class UsersService {
-  private static instance: UsersService;
-  private constructor() {}
-
-  public static getInstance(): UsersService {
-    if (!UsersService.instance) {
-      UsersService.instance = new UsersService();
-    }
-    return UsersService.instance;
+  @Inject('userModel') userModel: Model<IUser & Document>;
+  constructor(@Inject('userModel') userModel: Model<IUser & Document>) {
+    this.userModel = userModel;
   }
 
   public async create(data: RegisterUserValidatedInput) {
-    const user = await User.create({ ...data });
+    const user = await this.userModel.create({ ...data });
     return user; // TODO: more control
   }
 
@@ -26,12 +25,12 @@ export default class UsersService {
   }
 
   public async getOneByEmail(email: string) {
-    const user = await User.findOne({ email });
+    const user = await this.userModel.findOne({ email });
     return user; // TODO: more control
   }
 
   public async updateOne(id: string, data: UpdateUserValidatedInput) {
-    const user = await User.findOne({ _id: id });
+    const user = await this.userModel.findOne({ _id: id });
     if (user) {
       user.name = data.name || user.name;
       user.lastName = data.lastName || user.lastName;
@@ -45,7 +44,7 @@ export default class UsersService {
   }
 
   public async validateCredentials(email: string, password: string) {
-    const user = await User.findOne({ email });
+    const user = await this.userModel.findOne({ email });
     if (!user) throw new Error('Invalid Credentials');
     const isPasswordCorrect = await user.comparePassword(password);
     if (!isPasswordCorrect) throw new Error('Invalid Credentials');
