@@ -39,4 +39,4 @@ const JobSchema = new Schema<IJob>(
   { timestamps: true }
 );
 
-export default model<IJob>('Job', JobSchema);
+export default model<IJob & Document>('Job', JobSchema);

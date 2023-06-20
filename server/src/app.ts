@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 require('express-async-errors');
 import config from './config';
 

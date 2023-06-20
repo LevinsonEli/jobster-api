@@ -1,16 +1,28 @@
-import express from 'express';
+import express, { Application } from 'express';
 const router = express.Router();
 import authenticateUser from '../../middlewares/authentication';
 import testUser from '../../middlewares/testUser';
 import AuthController from './auth.controller';
+import config from '../../../config';
+import { Service, Inject } from 'typedi';
 
-router.post('/register', AuthController.getInstance().register);
-router.post('/login', AuthController.getInstance().login);
-router.patch(
-  '/updateUser',
-  authenticateUser,
-  testUser,
-  AuthController.getInstance().updateUser
-);
+@Service()
+export default class AuthRouter {
+  @Inject() authController: AuthController;
 
-export default router;
+  constructor(@Inject() authController: AuthController) {
+    this.authController = authController;
+  }
+  public addAuthRoutes = (app: Application): void => {
+    app.use(config.api.prefix + "/auth", router);
+
+    router.post('/register', this.authController.register);
+    router.post('/login', this.authController.login);
+    router.patch(
+      '/updateUser',
+      authenticateUser,
+      testUser,
+      this.authController.updateUser
+    );
+  }
+};

@@ -1,4 +1,3 @@
-const Job = require('../../../models/Job');
 const { StatusCodes } = require('http-status-codes');
 const {
   BadRequestError,
@@ -8,56 +7,59 @@ const {
 import JobValidator from '../../validators/job';
 import validateId from '../../validators/index';
 import { Request, RequestHandler, Response } from 'express';
-import { ICreateJobInputDTO, IGetAllJobsInputDTO, IUpdateJobInputDTO } from '../../../interfaces/user-inputs/IJobs';
+import {
+  ICreateJobInputDTO,
+  IGetAllJobsInputDTO,
+  IUpdateJobInputDTO,
+} from '../../../interfaces/user-inputs/IJobs';
 
 import JobsService from '../../../services/job';
 import IAuthRequest from '../../../interfaces/IAuthRequest';
+import { Service, Inject } from 'typedi';
 
+@Service()
 export default class JobsController {
-  private static instance: JobsController;
-  private constructor() {}
+  @Inject() jobsService: JobsService;
 
-  public static getInstance(): JobsController {
-    if (!JobsController.instance) {
-      JobsController.instance = new JobsController();
-    }
-    return JobsController.instance;
+  constructor(@Inject() jobsService: JobsService) {
+    this.jobsService = jobsService;
   }
 
-  public getAllJobs = async (req: IAuthRequest, res: Response) => {
+  getAllJobs = async (req: IAuthRequest, res: Response): Promise<void> => {
     const userId = req.user ? req.user.id : '';
     const validatedInput = JobValidator.getInstance().validateGetAllJobsInput(
       req.query as unknown as IGetAllJobsInputDTO
     );
-    // const validatedInput: IGetAllJobsValidatedInput = validateGetAllJobsInput(req.query);
 
-    const { jobs, totalJobs, numOfPages } =
-      await JobsService.getInstance().getMany(userId, validatedInput);
+    const { jobs, totalJobs, numOfPages } = await this.jobsService.getMany(
+      userId,
+      validatedInput
+    );
     res.status(StatusCodes.OK).json({ jobs, totalJobs, numOfPages });
   };
 
-  public getJob = async (req: IAuthRequest, res: Response) => {
+  getJob = async (req: IAuthRequest, res: Response) => {
     const userId = req.user ? req.user.id : '';
     const jobId = req.params.id;
     if (!validateId(jobId)) throw new NotFoundError('Job not found'); // can be refactored to: id = validateId(req.params.id);
 
-    const job = await JobsService.getInstance().getOne(jobId, userId);
+    const job = await this.jobsService.getOne(jobId, userId);
     if (!job) throw new NotFoundError('Job not found');
     res.status(StatusCodes.OK).json({ job });
   };
 
-  public createJob = async (req: IAuthRequest, res: Response) => {
+  createJob = async (req: IAuthRequest, res: Response): Promise<void> => {
     const userId = req.user ? req.user.id : '';
     req.body.createdBy = userId;
     const validatedJob = JobValidator.getInstance().validateCreateJobInput(
       req.body as ICreateJobInputDTO
     );
-    // const validatedJob = validateCreateJobInput(req.body);
-    const job = await JobsService.getInstance().create(validatedJob);
+
+    const job = await this.jobsService.create(validatedJob);
     res.status(StatusCodes.CREATED).json({ job });
   };
 
-  public updateJob = async (req: IAuthRequest, res: Response) => {
+  updateJob = async (req: IAuthRequest, res: Response) => {
     const userId = req.user ? req.user.id : '';
     req.body.userId = userId;
     const jobId = (req.body.jobId = req.params.id);
@@ -66,29 +68,24 @@ export default class JobsController {
     const validatedJob = JobValidator.getInstance().validateUpdateJobInput(
       req.body as IUpdateJobInputDTO
     );
-    // const validatedJob = validateUpdateJobInput(req.body);
 
-    const job = await JobsService.getInstance().updateOne(
-      jobId,
-      userId,
-      validatedJob
-    );
+    const job = await this.jobsService.updateOne(jobId, userId, validatedJob);
     res.status(StatusCodes.OK).json({ job });
   };
 
-  public deleteJob = async (req: IAuthRequest, res: Response) => {
+  deleteJob = async (req: IAuthRequest, res: Response) => {
     const userId = req.user ? req.user.id : '';
     const jobId = req.params.id;
     if (!validateId(jobId)) throw new NotFoundError('Job not found'); // can be refactored to: id = validateId(req.params.id);
 
-    const job = await JobsService.getInstance().deleteOne(jobId, userId);
+    const job = await this.jobsService.deleteOne(jobId, userId);
     res.status(StatusCodes.OK).send();
   };
 
-  public showStats = async (req: IAuthRequest, res: Response) => {
+  showStats = async (req: IAuthRequest, res: Response) => {
     const userId = req.user ? req.user.id : '';
     const { defaultStats, monthlyApplications } =
-      await JobsService.getInstance().getStats(userId);
+      await this.jobsService.getStats(userId);
     res.status(StatusCodes.OK).json({ defaultStats, monthlyApplications });
   };
 }
