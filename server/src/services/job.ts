@@ -16,22 +16,25 @@ interface IQueryObject {
   type: string,
 }
 
-interface IStats {
+interface IApplicationStatusStats {
   pending: number;
   interview: number;
   declined: number;
 }
 
+interface IMonthlyApplicationStat {
+  [key: string]: number;
+}
+
 import { Service, Inject } from 'typedi';
+import NotFoundError from '../api/errors/not-found';
+import BadRequestError from '../api/errors/bad-request';
 
 @Service()
 export default class JobsService {
-  @Inject('userModel') userModel: Model<IUser & Document>;
   @Inject('jobModel') jobModel: Model<IJob & Document>;
 
-  constructor(@Inject('userModel') userModel: Model<IUser & Document>,
-  @Inject('jobModel') jobModel: Model<IJob & Document>) {
-    this.userModel = userModel;
+  constructor(@Inject('jobModel') jobModel: Model<IJob & Document>) {
     this.jobModel = jobModel;
   }
 
@@ -78,9 +81,10 @@ export default class JobsService {
         _id: jobId,
         createdBy: userId,
       });
+      if (!job) throw new NotFoundError('Job not found.');
       return job;
     } catch (error) {
-      throw new Error('Error occured while sending a job.');
+      throw new NotFoundError('Job not found.');
     }
   };
 
@@ -89,7 +93,7 @@ export default class JobsService {
       const job = await this.jobModel.create(data);
       return job;
     } catch (error) {
-      throw new Error('Error occured while creating new job.');
+      throw new BadRequestError('Failed to create a job.');
     }
   };
 
@@ -99,19 +103,15 @@ export default class JobsService {
     data: UpdateJobValidatedInput
   ) => {
     try {
-      const { company, position, status, location, type } = data;
-
       const job = await this.jobModel.findOneAndUpdate(
         { _id: jobId, createdBy: userId },
-        { company, position, status, location, type } as UpdateQuery<
-          IJob & Document
-        >,
+        data as UpdateQuery<IJob & Document>,
         { new: true, runValidators: true }
       );
+      if (!job) throw new NotFoundError('Job not found.');
       return job;
     } catch (error) {
-      console.log(error);
-      throw new Error('Error occured while creating new job.');
+      throw new BadRequestError('Failed to update the job.');
     }
   };
 
@@ -121,61 +121,73 @@ export default class JobsService {
         _id: jobId,
         createdBy: userId,
       });
-      return true;
+      if (!job) throw new NotFoundError('Job not found.');
+      return job;
     } catch (error) {
-      throw new Error('Error occured while deleting the job.');
+      throw new BadRequestError('Failed to delete the job.');
     }
   };
 
   public getStats = async (userId: string) => {
     try {
-      let statsTemp = await this.jobModel.aggregate([
-        { $match: { createdBy: mongoose.Types.ObjectId(userId) } },
-        { $group: { _id: '$status', count: { $sum: 1 } } },
-      ]);
-
-      const stats = statsTemp.reduce((acc: any, curr: any) => {
-        const { _id: title, count } = curr;
-        acc[title] = count;
-        return acc;
-      }, {}) as IStats;
-
-      const defaultStats = {
-        pending: stats.pending || 0,
-        interview: stats.interview || 0,
-        declined: stats.declined || 0,
-      };
-
-      let monthlyApplications = await this.jobModel.aggregate([
-        { $match: { createdBy: mongoose.Types.ObjectId(userId) } },
-        {
-          $group: {
-            _id: {
-              year: { $year: '$createdAt' },
-              month: { $month: '$createdAt' },
-            },
-            count: { $sum: 1 },
-          },
-        },
-        { $sort: { '_id.year': -1, '_id.month': -1 } },
-        { $limit: 6 },
-      ]);
-
-      monthlyApplications = monthlyApplications.map((item: any) => {
-        const {
-          _id: { year, month },
-          count,
-        } = item;
-        const date = moment()
-          .month(month - 1)
-          .year(year)
-          .format('MMM Y');
-        return { date, count };
-      });
+      const defaultStats = await this.getApplicationStatusStats(userId);
+      const monthlyApplications = await this.getMonthlyNumberApplicationsStats(userId);
 
       return { defaultStats, monthlyApplications };
     } catch (error) {
-      throw new Error('Error occured while sending stats.');
+      throw new BadRequestError('Failed to get stats for the user.');
     }
   };
+
+  private getApplicationStatusStats = async (userId: string): Promise<IApplicationStatusStats> => {
+    let aggregatedApplications = await this.jobModel.aggregate([
+      { $match: { createdBy: mongoose.Types.ObjectId(userId) } },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]);
+
+    const stats = aggregatedApplications.reduce((acc: any, curr: any) => {
+      const { _id: title, count } = curr;
+      acc[title] = count;
+      return acc;
+    }, {}) as IApplicationStatusStats;
+
+    const defaultStats = {
+      pending: stats.pending || 0,
+      interview: stats.interview || 0,
+      declined: stats.declined || 0,
+    };
+
+    return defaultStats;
+  };
+
+  private getMonthlyNumberApplicationsStats = async (userId: string): Promise<Array<IMonthlyApplicationStat>> => {
+    const aggregatedApplications = await this.jobModel.aggregate([
+      { $match: { createdBy: mongoose.Types.ObjectId(userId) } },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { '_id.year': -1, '_id.month': -1 } },
+      { $limit: 6 },
+    ]);
+
+    const monthlyApplications = aggregatedApplications.map((item: any) => {
+      const {
+        _id: { year, month },
+        count,
+      } = item;
+      const date = moment()
+        .month(month - 1)
+        .year(year)
+        .format('MMM Y');
+      return { date, count };
+    });
+
+    return monthlyApplications;
+  }
 }
