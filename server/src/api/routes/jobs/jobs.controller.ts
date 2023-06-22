@@ -41,10 +41,9 @@ export default class JobsController {
   getJob = async (req: IAuthRequest, res: Response) => {
     const userId = req.user ? req.user.id : '';
     const jobId = req.params.id;
-    if (!validateId(jobId)) throw new NotFoundError('Job not found'); // can be refactored to: id = validateId(req.params.id);
+    if (!validateId(jobId)) throw new NotFoundError('Job not found');
 
     const job = await this.jobsService.getOne(jobId, userId);
-    if (!job) throw new NotFoundError('Job not found');
     res.status(StatusCodes.OK).json({ job });
   };
 
@@ -63,7 +62,7 @@ export default class JobsController {
     const userId = req.user ? req.user.id : '';
     req.body.userId = userId;
     const jobId = (req.body.jobId = req.params.id);
-    if (!validateId(jobId)) throw new NotFoundError('Job not found'); // can be refactored to: id = validateId(req.params.id);
+    if (!validateId(jobId)) throw new NotFoundError('Job not found');
 
     const validatedJob = JobValidator.getInstance().validateUpdateJobInput(
       req.body as IUpdateJobInputDTO
@@ -76,10 +75,10 @@ export default class JobsController {
   deleteJob = async (req: IAuthRequest, res: Response) => {
     const userId = req.user ? req.user.id : '';
     const jobId = req.params.id;
-    if (!validateId(jobId)) throw new NotFoundError('Job not found'); // can be refactored to: id = validateId(req.params.id);
+    if (!validateId(jobId)) throw new NotFoundError('Job not found');
 
     const job = await this.jobsService.deleteOne(jobId, userId);
-    res.status(StatusCodes.OK).send();
+    res.status(StatusCodes.OK).send({ job });
   };
 
   showStats = async (req: IAuthRequest, res: Response) => {
