@@ -75,7 +75,7 @@ export default class JobsService {
     return { jobs, totalJobs, numOfPages };
   };
 
-  public getOne = async (jobId: string, userId: string) => {
+  public getOne = async (jobId: string, userId: string): Promise<IJob> => {
     try {
       const job = await this.jobModel.findOne({
         _id: jobId,
@@ -88,7 +88,7 @@ export default class JobsService {
     }
   };
 
-  public create = async (data: CreateJobValidatedInput) => {
+  public create = async (data: CreateJobValidatedInput): Promise<IJob> => {
     try {
       const job = await this.jobModel.create(data);
       return job;
@@ -101,7 +101,7 @@ export default class JobsService {
     jobId: string,
     userId: string,
     data: UpdateJobValidatedInput
-  ) => {
+  ): Promise<IJob> => {
     try {
       const job = await this.jobModel.findOneAndUpdate(
         { _id: jobId, createdBy: userId },
@@ -115,7 +115,7 @@ export default class JobsService {
     }
   };
 
-  public deleteOne = async (jobId: string, userId: string) => {
+  public deleteOne = async (jobId: string, userId: string): Promise<IJob> => {
     try {
       const job = await this.jobModel.findByIdAndRemove({
         _id: jobId,
@@ -128,10 +128,17 @@ export default class JobsService {
     }
   };
 
-  public getStats = async (userId: string) => {
+  public getStats = async (
+    userId: string
+  ): Promise<{
+    defaultStats: IApplicationStatusStats;
+    monthlyApplications: Array<IMonthlyApplicationStat>;
+  }> => {
     try {
       const defaultStats = await this.getApplicationStatusStats(userId);
-      const monthlyApplications = await this.getMonthlyNumberApplicationsStats(userId);
+      const monthlyApplications = await this.getMonthlyNumberApplicationsStats(
+        userId
+      );
 
       return { defaultStats, monthlyApplications };
     } catch (error) {
@@ -139,7 +146,9 @@ export default class JobsService {
     }
   };
 
-  private getApplicationStatusStats = async (userId: string): Promise<IApplicationStatusStats> => {
+  private getApplicationStatusStats = async (
+    userId: string
+  ): Promise<IApplicationStatusStats> => {
     let aggregatedApplications = await this.jobModel.aggregate([
       { $match: { createdBy: mongoose.Types.ObjectId(userId) } },
       { $group: { _id: '$status', count: { $sum: 1 } } },
@@ -160,7 +169,9 @@ export default class JobsService {
     return defaultStats;
   };
 
-  private getMonthlyNumberApplicationsStats = async (userId: string): Promise<Array<IMonthlyApplicationStat>> => {
+  private getMonthlyNumberApplicationsStats = async (
+    userId: string
+  ): Promise<Array<IMonthlyApplicationStat>> => {
     const aggregatedApplications = await this.jobModel.aggregate([
       { $match: { createdBy: mongoose.Types.ObjectId(userId) } },
       {
@@ -189,5 +200,5 @@ export default class JobsService {
     });
 
     return monthlyApplications;
-  }
+  };
 }

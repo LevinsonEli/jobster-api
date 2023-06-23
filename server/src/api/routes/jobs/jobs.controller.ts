@@ -38,7 +38,7 @@ export default class JobsController {
     res.status(StatusCodes.OK).json({ jobs, totalJobs, numOfPages });
   };
 
-  getJob = async (req: IAuthRequest, res: Response) => {
+  getJob = async (req: IAuthRequest, res: Response): Promise<void> => {
     const userId = req.user ? req.user.id : '';
     const jobId = req.params.id;
     if (!validateId(jobId)) throw new NotFoundError('Job not found');
@@ -58,7 +58,7 @@ export default class JobsController {
     res.status(StatusCodes.CREATED).json({ job });
   };
 
-  updateJob = async (req: IAuthRequest, res: Response) => {
+  updateJob = async (req: IAuthRequest, res: Response): Promise<void> => {
     const userId = req.user ? req.user.id : '';
     req.body.userId = userId;
     const jobId = (req.body.jobId = req.params.id);
@@ -72,7 +72,7 @@ export default class JobsController {
     res.status(StatusCodes.OK).json({ job });
   };
 
-  deleteJob = async (req: IAuthRequest, res: Response) => {
+  deleteJob = async (req: IAuthRequest, res: Response): Promise<void> => {
     const userId = req.user ? req.user.id : '';
     const jobId = req.params.id;
     if (!validateId(jobId)) throw new NotFoundError('Job not found');
@@ -81,7 +81,7 @@ export default class JobsController {
     res.status(StatusCodes.OK).send({ job });
   };
 
-  showStats = async (req: IAuthRequest, res: Response) => {
+  showStats = async (req: IAuthRequest, res: Response): Promise<void> => {
     const userId = req.user ? req.user.id : '';
     const { defaultStats, monthlyApplications } =
       await this.jobsService.getStats(userId);

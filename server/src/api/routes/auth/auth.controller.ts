@@ -17,7 +17,7 @@ export default class AuthController {
     this.userService = userService;
   }
 
-  register = async (req: Request, res: Response) => {
+  register = async (req: Request, res: Response): Promise<void> => {
     const validatedUser = UserValidator.getInstance().validateUserForRegister(
       req.body as IUserForRegisterDTO
     );
@@ -39,7 +39,7 @@ export default class AuthController {
     });
   };
 
-  login = async (req: Request, res: Response) => {
+  login = async (req: Request, res: Response): Promise<void> => {
     const email = UserValidator.getInstance().validateEmail(req.body.email);
     const user = await this.userService.validateCredentials(
       email,
@@ -59,7 +59,7 @@ export default class AuthController {
     });
   };
 
-  updateUser = async (req: IAuthRequest, res: Response) => {
+  updateUser = async (req: IAuthRequest, res: Response): Promise<void> => {
     const userId = req.user ? req.user.id : '';
     const validatedUser = UserValidator.getInstance().validateUserForUpdate(
       req.body as IUserForUpdateDTO
