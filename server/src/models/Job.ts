@@ -1,6 +1,8 @@
 const mongoose = require('mongoose')
 import IJob from '../interfaces/IJob';
 import { Schema, model } from 'mongoose';
+import JobStatuses from '../types/jobs/JobStatuses';
+import JobTypes from '../types/jobs/JobTypes';
 
 const JobSchema = new Schema<IJob>(
   {
@@ -16,7 +18,7 @@ const JobSchema = new Schema<IJob>(
     },
     status: {
       type: String,
-      enum: ['interview', 'declined', 'pending'],
+      enum: Object.keys(JobStatuses),
       default: 'pending',
     },
     createdBy: {
@@ -32,7 +34,7 @@ const JobSchema = new Schema<IJob>(
     },
     type: {
       type: String,
-      enum: ['full-time', 'part-time', 'remote', 'internship'],
+      enum: Object.keys(JobTypes),
       default: 'full-time',
     },
   },
