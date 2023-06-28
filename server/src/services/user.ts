@@ -7,12 +7,22 @@ import { Model } from 'mongoose';
 import IUser from '../interfaces/IUser';
 import { Service, Inject } from 'typedi';
 import { BadRequestError, NotFoundError, UnauthenticatedError } from '../api/errors';
+import {
+  EventDispatcher,
+  EventDispatcherInterface,
+} from '../decorators/event-dispatcher';
+import events from '../subscribers/events';
 
 @Service()
 export default class UsersService {
   @Inject('userModel') userModel: Model<IUser & Document>;
-  constructor(@Inject('userModel') userModel: Model<IUser & Document>) {
+  @EventDispatcher() private eventDispatcher: EventDispatcherInterface;
+  constructor(
+    @Inject('userModel') userModel: Model<IUser & Document>,
+    @EventDispatcher() eventDispatcher: EventDispatcherInterface
+  ) {
     this.userModel = userModel;
+    this.eventDispatcher = eventDispatcher;
   }
 
   public async create(data: RegisterUserValidatedInput): Promise<IUser> {
@@ -24,24 +34,16 @@ export default class UsersService {
     }
   }
 
-  public async getOne(id: string): Promise<IUser> {
-    try {
-      const user = await User.findOne({ _id: id });
-      if (!user) throw new NotFoundError('User not found.');
-      return user;
-    } catch (err) {
-      throw new NotFoundError('User not found.');
-    }
+  // return user or null if not found
+  public async getOne(id: string): Promise<IUser | null> {
+    const user = await User.findOne({ _id: id });
+    return user;
   }
 
-  public async getOneByEmail(email: string): Promise<IUser> {
-    try {
-      const user = await this.userModel.findOne({ email });
-      if (!user) throw new NotFoundError('User not found.');
-      return user;
-    } catch (err) {
-      throw new NotFoundError('User not found.');
-    }
+  // return user or null if not found
+  public async getOneByEmail(email: string): Promise<IUser | null> {
+    const user = await this.userModel.findOne({ email });
+    return user;
   }
 
   public async updateOne(
@@ -54,6 +56,7 @@ export default class UsersService {
 
       user.name = data.name || user.name;
       user.lastName = data.lastName || user.lastName;
+      // user.email = data.email || user.email; // TODO: separate email update
       user.location = data.location || user.location;
 
       const updatedUser = await user.save();
@@ -61,27 +64,5 @@ export default class UsersService {
     } catch (err) {
       throw new BadRequestError('Failed to create the user.');
     }
-  }
-
-  public async validateCredentials(
-    email: string,
-    password: string
-  ): Promise<IUser> {
-    try {
-      const user = await this.userModel.findOne({ email });
-      if (!user) throw new UnauthenticatedError('Invalid Credentials');
-      const isPasswordCorrect = await user.comparePassword(password);
-      if (!isPasswordCorrect) throw new UnauthenticatedError('Invalid Credentials');
-      return user;
-    } catch (err) {
-      throw new BadRequestError('Failed to validate credentials.');
-    }
-  }
-
-  public createPayloadForJWT(user: { _id: string; name: string }): IJWTPayload {
-    return {
-      id: user._id,
-      name: user.name,
-    };
   }
 }

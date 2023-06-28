@@ -20,14 +20,19 @@ import { Service, Inject } from 'typedi';
 @Service()
 export default class JobsController {
   @Inject() jobsService: JobsService;
+  @Inject() JobValidator: JobValidator;
 
-  constructor(@Inject() jobsService: JobsService) {
+  constructor(
+    @Inject() jobsService: JobsService,
+    @Inject() JobValidator: JobValidator
+  ) {
     this.jobsService = jobsService;
+    this.JobValidator = JobValidator;
   }
 
   getAllJobs = async (req: IAuthRequest, res: Response): Promise<void> => {
     const userId = req.user ? req.user.id : '';
-    const validatedInput = JobValidator.getInstance().validateGetAllJobsInput(
+    const validatedInput = this.JobValidator.validateGetAllJobsInput(
       req.query as unknown as IGetAllJobsInputDTO
     );
 
@@ -50,7 +55,7 @@ export default class JobsController {
   createJob = async (req: IAuthRequest, res: Response): Promise<void> => {
     const userId = req.user ? req.user.id : '';
     req.body.createdBy = userId;
-    const validatedJob = JobValidator.getInstance().validateCreateJobInput(
+    const validatedJob = this.JobValidator.validateCreateJobInput(
       req.body as ICreateJobInputDTO
     );
 
@@ -64,7 +69,7 @@ export default class JobsController {
     const jobId = (req.body.jobId = req.params.id);
     if (!validateId(jobId)) throw new NotFoundError('Job not found');
 
-    const validatedJob = JobValidator.getInstance().validateUpdateJobInput(
+    const validatedJob = this.JobValidator.validateUpdateJobInput(
       req.body as IUpdateJobInputDTO
     );
 

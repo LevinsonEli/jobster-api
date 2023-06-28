@@ -1,10 +1,18 @@
 
 require('express-async-errors');
 
+// events. can be separate file
+import '../subscribers/user';
+
 import { Container } from 'typedi';
 // TODO: move to separate file: 'dependency-injectors'
 Container.set('userModel', require('../models/User').default);
 Container.set('jobModel', require('../models/Job').default);
+
+import nodemailer from 'nodemailer';
+import config from '../config';
+
+Container.set('mailTransporter', nodemailer.createTransport(config.nodemailer));
 
 import express from 'express';
 const app = express();

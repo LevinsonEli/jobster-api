@@ -6,8 +6,8 @@ export interface IUserForRegisterDTO {
 }
 
 export interface IUserForUpdateDTO {
-    name: string;
-    lastName: string;
-    email: string;
-    location: string;
+    name?: string;
+    lastName?: string;
+    email?: string;
+    location?: string;
 }
