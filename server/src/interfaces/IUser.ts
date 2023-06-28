@@ -6,6 +6,6 @@ export default interface IUser extends Document {
   lastName: string;
   location: string;
   email: string;
-  password: string;
+  password?: string; // TODO ?
   comparePassword(canditatePassword: string): Promise<boolean>;
 }

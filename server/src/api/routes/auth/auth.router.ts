@@ -22,7 +22,7 @@ export default class AuthRouter {
       '/updateUser',
       authenticateUser,
       testUser,
-      this.authController.updateUser
+      this.authController.update
     );
   }
 };

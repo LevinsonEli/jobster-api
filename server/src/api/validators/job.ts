@@ -15,17 +15,10 @@ import {
 } from '../../interfaces/user-inputs/IJobs';
 import JobStatuses from '../../types/jobs/JobStatuses';
 import JobTypes from '../../types/jobs/JobTypes';
+import { Service } from 'typedi';
 
+@Service()
 export default class JobValidator {
-  private static instance: JobValidator;
-  private constructor() {}
-
-  public static getInstance(): JobValidator {
-    if (!JobValidator.instance) {
-      JobValidator.instance = new JobValidator();
-    }
-    return JobValidator.instance;
-  }
 
   public validateGetAllJobsInput = (
     input: IGetAllJobsInputDTO

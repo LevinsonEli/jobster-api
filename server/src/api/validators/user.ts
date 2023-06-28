@@ -1,5 +1,6 @@
 const { BadRequestError } = require('../errors');
 
+import { Service } from 'typedi';
 import {
   IUserForRegisterDTO,
   IUserForUpdateDTO,
@@ -7,16 +8,8 @@ import {
 import RegisterUserValidatedInput from '../../types/users/RegisterUserValidatedInput';
 import UpdateUserValidatedInput from '../../types/users/UpdateUserValidatedInput';
 
+@Service()
 export default class UserValidator {
-  private static instance: UserValidator;
-  private constructor() {}
-
-  public static getInstance(): UserValidator {
-    if (!UserValidator.instance) {
-      UserValidator.instance = new UserValidator();
-    }
-    return UserValidator.instance;
-  }
 
   public validateName = (name: string): string => {
     if (name.length < 3)
@@ -65,12 +58,14 @@ export default class UserValidator {
   };
 
   public validateUserForUpdate = (user: IUserForUpdateDTO): UpdateUserValidatedInput => {
-    const name = this.validateName(user?.name || '');
+    const name = user.name ? this.validateName(user.name) : undefined;
     const lastName = user.lastName
       ? this.validateLastName(user.lastName)
-      : null;
-    const email = this.validateEmail(user.email);
-    const location = this.validateLocation(user.location);
+      : undefined;
+    const email = user.email ? this.validateEmail(user.email) : undefined;
+    const location = user.location
+      ? this.validateLocation(user.location)
+      : undefined;
 
     return { name, lastName, email, location } as UpdateUserValidatedInput;
   };
